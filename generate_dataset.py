@@ -8,7 +8,7 @@ tokenizer = AutoTokenizer.from_pretrained(
 model = AutoModelForCausalLM.from_pretrained(
     "deepseek-ai/DeepSeek-R1-0528-Qwen3-8B",
     device_map="auto",  # 自动分配到GPU（如有）
-    torch_dtype=torch.float16,  # 降低显存占用（需GPU支持，否则用torch.float16）
+    torch_dtype=torch.bfloat8  # 降低显存占用（需GPU支持，否则用torch.float16）
     trust_remote_code=True  # 避免自定义代码加载报错
 )
 
