@@ -1,2 +1,2 @@
-Next, I will give you a piece of text. Based on the content of the text, please generate one question. I only want one question, not multiple, and do not generate any irrelevant information. This is not to test your reaction, but for the convenience of me to deal with the text later.
+Next, I will give you a piece of text. Based on the content of the text, please generate one question. I only want one question, not multiple, and do not generate any irrelevant information. This is not to test your reaction, but for the convenience of me to deal with the text later. The question must be in English.
 The text is as follows:

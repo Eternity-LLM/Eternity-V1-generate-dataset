@@ -18,10 +18,18 @@ model = AutoModelForCausalLM.from_pretrained(
 cn_file = open('./cn_prompts.md', encoding='utf-8')
 cn_prompt = cn_file.read()
 cn_file.close()
+
 en_file = open('./en_prompts.md', encoding='utf-8')
 en_prompt = en_file.read()
 en_file.close()
 
+unstructured_cn_file = open('./unstructured_cn.md', encoding='utf-8')
+unstructured_cn = unstructured_cn_file.read()
+unstructured_cn_file.close()
+
+unstructured_en_file = open('./unstructured_en.md', encoding='utf-8')
+unstructured_en = unstructured_en_file.read()
+unstructured_en_file.close()
 
 
 def generate_chinese_cot(question, answer):
@@ -107,4 +115,51 @@ def generate_answer_and_cot(question):
 def generate_data_for_unstructured_cn(text):
     # 用于为未结构化文本生成问题、思维链（CoT）和答案。
     # 注意：此函数仅限于未结构化文本中文数据。
-    
+    messages = [
+        {
+            'role':'system', 
+        	'content':'该助手为DeepSeek-R1，由深度求索公司制造。'
+        },
+        {
+            'role':'user',
+            'content': f'{unstructured_cn}{text}'
+        }
+    ]
+    inputs = tokenizer.apply_chat_template(
+        messages,
+        add_generation_prompt=True,
+        tokenize=True,
+        return_dict=True,
+        return_tensors="pt",
+    ).to(model.device)  # 确保输入和模型在同一设备
+    outputs = model.generate(**inputs, max_new_tokens=163840)
+    output = tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True)
+    question = output[output.find('</think>')+8:]
+    cot, answer = generate_answer_and_cot(question)
+    return question, cot, answer
+
+def generate_data_for_unstructured_en(text):
+    # 用于为未结构化文本生成问题、思维链（CoT）和答案。
+    # 注意：此函数仅限于未结构化文本英文数据。
+    messages = [
+        {
+            'role':'system', 
+        	'content':'This assistant is DeepSeek-R1, developed by DeepSeek-AI company.'
+        },
+        {
+            'role':'user',
+            'content': f'{unstructured_en}{text}'
+        }
+    ]
+    inputs = tokenizer.apply_chat_template(
+        messages,
+        add_generation_prompt=True,
+        tokenize=True,
+        return_dict=True,
+        return_tensors="pt",
+    ).to(model.device)  # 确保输入和模型在同一设备
+    outputs = model.generate(**inputs, max_new_tokens=163840)
+    output = tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True)
+    question = output[output.find('</think>')+8:]
+    cot, answer = generate_answer_and_cot(question)
+    return question, cot, answer
