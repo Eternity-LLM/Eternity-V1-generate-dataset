@@ -1,6 +1,7 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 
+# 加载模型和分词器
 tokenizer = AutoTokenizer.from_pretrained(
     "deepseek-ai/DeepSeek-R1-0528-Qwen3-8B",
     padding_side="left"  # 生成时左填充更合理
@@ -12,6 +13,10 @@ model = AutoModelForCausalLM.from_pretrained(
     trust_remote_code=True  # 避免自定义代码加载报错
 )
 
+# 加载提示词
+
+
+'''
 messages = [{"role": "user", "content": "Who are you?"}]
 
 inputs = tokenizer.apply_chat_template(
@@ -26,3 +31,16 @@ inputs = tokenizer.apply_chat_template(
 outputs = model.generate(**inputs, max_new_tokens=512)
 # 解码时只取新增部分（排除输入）
 print(tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True))
+'''
+
+def generate_chinese_cot(question, answer):
+    messages = [
+        {
+            'role':'system', 
+        	'content':'该助手为DeepSeek-R1，由深度求索公司制造。'
+        },
+        {
+            'role':'user',
+            'content':0
+        }
+    ]
