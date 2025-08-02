@@ -163,3 +163,20 @@ def generate_data_for_unstructured_en(text):
     question = output[output.find('</think>')+8:]
     cot, answer = generate_answer_and_cot(question)
     return question, cot, answer
+
+def save_data(question, cot, answer, file_name):
+    for text in [question, cot, answer]:
+        temp = ''
+        for i in range(len(question)):
+            if text[i] == '\n':
+                temp += '\\n'
+            elif text[i] == '\\':
+                temp += '\\\\'
+            else:
+                temp += text[i]
+        text = temp
+    with open(f'./{file_name}', mode='w', encoding='utf-8') as f:
+        f.write('{\'question\':%s, \'cot\':%s, \'answer\':%s}\n'%(question, cot, answer))
+    return
+
+
