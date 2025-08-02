@@ -1,6 +1,6 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
-import re
+
 
 # 加载模型和分词器
 tokenizer = AutoTokenizer.from_pretrained(
@@ -46,7 +46,9 @@ def generate_chinese_cot(question, answer):
     ).to(model.device)  # 确保输入和模型在同一设备
 
     outputs = model.generate(**inputs, max_new_tokens=163840)
-    return tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True)
+    cot = tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True)
+    cot = cot[cot.find('</think>')+8 :]
+    return cot
 
 def generate_english_cot(question, answer):
     # 用于为英文问题生成思维链（CoT）
@@ -70,5 +72,39 @@ def generate_english_cot(question, answer):
     ).to(model.device)  # 确保输入和模型在同一设备
 
     outputs = model.generate(**inputs, max_new_tokens=163840)
-    return tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True)
+    cot = tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True)
+    cot = cot[cot.find('</think>')+8 :]
+    return cot
 
+def generate_answer_and_cot(question):
+    # 用于为中文问题生成答案和思维链（CoT）
+    # 注意：此函数仅限于数据中只有问题没有答案的数据。
+    # 如果数据中有答案，请使用generate_chinese_cot或generate_english_cot函数。
+    # 此函数返回2个字符串：思维链和答案。
+    messages = [
+        {
+            'role':'system', 
+        	'content':'该助手为DeepSeek-R1，由深度求索公司制造。'
+        },
+        {
+            'role':'user',
+            'content': question
+        }
+    ]
+    inputs = tokenizer.apply_chat_template(
+        messages,
+        add_generation_prompt=True,
+        tokenize=True,
+        return_dict=True,
+        return_tensors="pt",
+    ).to(model.device)  # 确保输入和模型在同一设备
+    outputs = model.generate(**inputs, max_new_tokens=163840)
+    output = tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True)
+    cot = output[output.find('<think>')+7 : output.find('</think>')]
+    answer = output[output.find('</think>')+8 :]
+    return cot, answer
+
+def generate_data_for_unstructured_cn(text):
+    # 用于为未结构化文本生成问题、思维链（CoT）和答案。
+    # 注意：此函数仅限于未结构化文本中文数据。
+    
