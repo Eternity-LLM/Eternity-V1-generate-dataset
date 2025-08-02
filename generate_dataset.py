@@ -1,5 +1,6 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
+import re
 
 # 加载模型和分词器
 tokenizer = AutoTokenizer.from_pretrained(
@@ -14,26 +15,18 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 
 # 加载提示词
+cn_file = open('./cn_prompts.md', encoding='utf-8')
+cn_prompt = cn_file.read()
+cn_file.close()
+en_file = open('./en_prompts.md', encoding='utf-8')
+en_prompt = en_file.read()
+en_file.close()
 
 
-'''
-messages = [{"role": "user", "content": "Who are you?"}]
-
-inputs = tokenizer.apply_chat_template(
-    messages,
-    add_generation_prompt=True,
-    tokenize=True,
-    return_dict=True,
-    return_tensors="pt",
-).to(model.device)  # 确保输入和模型在同一设备
-
-# 调整max_new_tokens为合适长度
-outputs = model.generate(**inputs, max_new_tokens=512)
-# 解码时只取新增部分（排除输入）
-print(tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True))
-'''
 
 def generate_chinese_cot(question, answer):
+    # 用于为中文问题生成思维链（CoT）
+    # 注意：此函数仅限于中文！！！
     messages = [
         {
             'role':'system', 
@@ -41,6 +34,41 @@ def generate_chinese_cot(question, answer):
         },
         {
             'role':'user',
-            'content':0
+            'content': f'{cn_prompt}\n问题是：{question}\n答案是：{answer}'
         }
     ]
+    inputs = tokenizer.apply_chat_template(
+        messages,
+        add_generation_prompt=True,
+        tokenize=True,
+        return_dict=True,
+        return_tensors="pt",
+    ).to(model.device)  # 确保输入和模型在同一设备
+
+    outputs = model.generate(**inputs, max_new_tokens=163840)
+    return tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True)
+
+def generate_english_cot(question, answer):
+    # 用于为英文问题生成思维链（CoT）
+    # 注意：此函数仅限于英文！！！
+    messages = [
+        {
+            'role':'system', 
+        	'content':'This assistant is DeepSeek-R1, developed by DeepSeek-AI company.'
+        },
+        {
+            'role':'user',
+            'content': f'{en_prompt}\nQuestion: {question}\nAnswer: {answer}'
+        }
+    ]
+    inputs = tokenizer.apply_chat_template(
+        messages,
+        add_generation_prompt=True,
+        tokenize=True,
+        return_dict=True,
+        return_tensors="pt",
+    ).to(model.device)  # 确保输入和模型在同一设备
+
+    outputs = model.generate(**inputs, max_new_tokens=163840)
+    return tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True)
+

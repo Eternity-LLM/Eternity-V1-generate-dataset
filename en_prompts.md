@@ -6,7 +6,7 @@ Now, I need you to help me generate chains of thoughts (CoT) for questions and a
 - The CoT should be as detailed as possible, covering all possible cases, especially for complex questions.
 - However, for overly simple questions, such as "Hello" or "1+1", please do not generate a CoT, as these questions do not require reasoning. For such questions, do not reply with anything—leave it blank.
 - I only want you to generate the CoT. I will provide you with examples.
-- The CoT must be written in Chinese.
+- The CoT must be written in English.
 - For convenience, please do not generate any irrelevant content.
 
 ---
